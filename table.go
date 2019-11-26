@@ -13,11 +13,28 @@ type Table struct {
 	Rows [][]string
 }
 
+func NewTable(header []string, rows [][]string) Table {
+	table := Table{Headers:header, Rows:rows}
+
+	// If there are fewer headers than columns,
+	// fill in the blanks
+	nHeaders := len(table.Headers)
+	nColumns := len(table.Rows[0])
+	fmt.Println(nHeaders, nColumns)
+	difference := nColumns - nHeaders
+
+	for i := 0; i < difference; i ++ {
+		table.Headers = append(table.Headers, "___")
+	}
+	return table
+}
+
 func getHeader(h *colly.HTMLElement) []string {
 	var headers []string
 	h.ForEach("tr th", func(_ int, el *colly.HTMLElement) {
 		headers = append(headers, el.Text)
 	})
+	fmt.Println(headers)
 	return headers
 }
 
@@ -36,13 +53,16 @@ func getRows(rowElements *colly.HTMLElement) [][]string {
 }
 
 // Fetches all the tables on a given page
-func GetTables(url string) ([]Table, error) {
+func GetTables(url, selector string) ([]Table, error) {
+	if selector == "" {
+		selector = "table"
+	}
 	var tables []Table
 	c := colly.NewCollector()
-	c.OnHTML("table", func(e *colly.HTMLElement) {
+	c.OnHTML(selector, func(e *colly.HTMLElement) {
 		header := getHeader(e)
 		rows := getRows(e)
-		table := Table{Headers:header, Rows:rows}
+		table := NewTable(header, rows)
 		tables = append(tables, table)
 	})
 
@@ -100,6 +120,8 @@ func (t *Table) getRows(rowElements *colly.HTMLElement) {
 }
 
 func (t *Table) Map() []map[string]string {
+	fmt.Println(t.Headers)
+	fmt.Println(t.Rows)
 	var result []map[string]string
 	for _, row := range t.Rows {
 		var rowMap = make(map[string]string)
