@@ -1,0 +1,1 @@
+Table is a Go package that scrapes tables
