@@ -13,6 +13,50 @@ type Table struct {
 	Rows [][]string
 }
 
+func getHeader(h *colly.HTMLElement) []string {
+	var headers []string
+	h.ForEach("tr th", func(_ int, el *colly.HTMLElement) {
+		headers = append(headers, el.Text)
+	})
+	return headers
+}
+
+func getRows(rowElements *colly.HTMLElement) [][]string {
+	var result [][]string
+	rowElements.ForEach("tr", func(i int, rowElement *colly.HTMLElement) {
+		var row [] string
+		rowElement.ForEach("td", func(j int, columnElement *colly.HTMLElement) {
+			row = append(row, columnElement.Text)
+		})
+		if len(row) > 0 {
+			result = append(result, row)
+		}
+	})
+	return result
+}
+
+// Fetches all the tables on a given page
+func GetTables(url string) ([]Table, error) {
+	var tables []Table
+	c := colly.NewCollector()
+	c.OnHTML("table", func(e *colly.HTMLElement) {
+		header := getHeader(e)
+		rows := getRows(e)
+		table := Table{Headers:header, Rows:rows}
+		tables = append(tables, table)
+	})
+
+	err := c.Visit(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.Wait()
+
+	return tables, nil
+}
+
 func (t *Table) Get(url string, i int) error {
 	c := colly.NewCollector()
 	c.OnHTML("table", func(e *colly.HTMLElement) {
@@ -91,6 +135,3 @@ func (t *Table) PrintJSON() error {
 	fmt.Println(string(b))
 	return nil
 }
-
-
-
