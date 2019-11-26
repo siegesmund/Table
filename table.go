@@ -68,10 +68,9 @@ func (t *Table) Map() []map[string]string {
 	return result
 }
 
-func (t *Table) JSON() (string, error) {
+func (t *Table) JSON() ([]byte, error) {
 	m := t.Map()
-	b, e := json.Marshal(m)
-	return string(b), e
+	return json.Marshal(m)
 }
 
 func (t *Table) Print() {
