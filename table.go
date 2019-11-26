@@ -13,7 +13,31 @@ type Table struct {
 	Rows [][]string
 }
 
-func NewTable(header []string, rows [][]string) Table {
+func (t *Table) NRows() int {
+	return len(t.Rows)
+}
+
+// If each row has the same number of elements,
+// returns the number of elements. Otherwise, it
+// return -1
+func (t *Table) NColumns() int {
+	if t.RowsAreUniform() {
+		return len(t.Rows[0])
+	} else {
+		return -1
+	}
+}
+
+func (t *Table) RowsAreUniform() bool {
+	for i := 1; i < len(t.Rows); i++ {
+		if len(t.Rows[i]) != len(t.Rows[0]) {
+			return false
+		}
+	}
+	return true
+}
+
+func NewTableFromHeaderAndRows(header []string, rows [][]string) Table {
 	table := Table{Headers:header, Rows:rows}
 
 	// If there are fewer headers than columns,
@@ -54,15 +78,17 @@ func getRows(rowElements *colly.HTMLElement) [][]string {
 
 // Fetches all the tables on a given page
 func GetTables(url, selector string) ([]Table, error) {
+
 	if selector == "" {
 		selector = "table"
 	}
+
 	var tables []Table
 	c := colly.NewCollector()
 	c.OnHTML(selector, func(e *colly.HTMLElement) {
 		header := getHeader(e)
 		rows := getRows(e)
-		table := NewTable(header, rows)
+		table := NewTableFromHeaderAndRows(header, rows)
 		tables = append(tables, table)
 	})
 
