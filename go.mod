@@ -1,4 +1,4 @@
-module table
+module github.com/siegesmund/table
 
 go 1.13
 
@@ -15,5 +15,6 @@ require (
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/temoto/robotstxt v1.1.1 // indirect
+	golang.org/x/net v0.0.0-20191125084936-ffdde1057850 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 )

@@ -41,7 +41,7 @@ github.com/saintfish/chardet
 github.com/stretchr/testify/assert
 # github.com/temoto/robotstxt v1.1.1
 github.com/temoto/robotstxt
-# golang.org/x/net v0.0.0-20190603091049-60506f45cf65
+# golang.org/x/net v0.0.0-20191125084936-ffdde1057850
 golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
