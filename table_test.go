@@ -20,7 +20,5 @@ func TestTable(t *testing.T) {
 
 func TestTables(t *testing.T) {
 	tables, _ := GetTables(url3, "table.quotes")
-	for _, table := range tables {
-		table.PrintJSON()
-	}
+	tables.PrintJSON()
 }

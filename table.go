@@ -13,30 +13,6 @@ type Table struct {
 	Rows [][]string
 }
 
-func (t *Table) NRows() int {
-	return len(t.Rows)
-}
-
-// If each row has the same number of elements,
-// returns the number of elements. Otherwise, it
-// return -1
-func (t *Table) NColumns() int {
-	if t.RowsAreUniform() {
-		return len(t.Rows[0])
-	} else {
-		return -1
-	}
-}
-
-func (t *Table) RowsAreUniform() bool {
-	for i := 1; i < len(t.Rows); i++ {
-		if len(t.Rows[i]) != len(t.Rows[0]) {
-			return false
-		}
-	}
-	return true
-}
-
 func NewTableFromHeaderAndRows(header []string, rows [][]string) Table {
 	table := Table{Headers:header, Rows:rows}
 
@@ -76,78 +52,7 @@ func getRows(rowElements *colly.HTMLElement) [][]string {
 	return result
 }
 
-// Fetches all the tables on a given page
-func GetTables(url, selector string) ([]Table, error) {
-
-	if selector == "" {
-		selector = "table"
-	}
-
-	var tables []Table
-	c := colly.NewCollector()
-	c.OnHTML(selector, func(e *colly.HTMLElement) {
-		header := getHeader(e)
-		rows := getRows(e)
-		table := NewTableFromHeaderAndRows(header, rows)
-		tables = append(tables, table)
-	})
-
-	err := c.Visit(url)
-
-	if err != nil {
-		return nil, err
-	}
-
-	c.Wait()
-
-	return tables, nil
-}
-
-func (t *Table) Get(url string, i int) error {
-	c := colly.NewCollector()
-	c.OnHTML("table", func(e *colly.HTMLElement) {
-		if e.Index == i {
-			t.getHeader(e)
-			t.getRows(e)
-		}
-	})
-
-	err := c.Visit(url)
-
-	if err != nil {
-		return err
-	}
-
-	c.Wait()
-
-	return nil
-}
-
-func (t *Table) getHeader(h *colly.HTMLElement) {
-	var headers []string
-	h.ForEach("tr th", func(_ int, el *colly.HTMLElement) {
-		headers = append(headers, el.Text)
-	})
-	t.Headers = headers
-}
-
-func (t *Table) getRows(rowElements *colly.HTMLElement) {
-	var result [][]string
-	rowElements.ForEach("tr", func(i int, rowElement *colly.HTMLElement) {
-		var row [] string
-		rowElement.ForEach("td", func(j int, columnElement *colly.HTMLElement) {
-			row = append(row, columnElement.Text)
-		})
-		if len(row) > 0 {
-			result = append(result, row)
-		}
-	})
-	t.Rows = result
-}
-
 func (t *Table) Map() []map[string]string {
-	fmt.Println(t.Headers)
-	fmt.Println(t.Rows)
 	var result []map[string]string
 	for _, row := range t.Rows {
 		var rowMap = make(map[string]string)
