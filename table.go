@@ -39,7 +39,7 @@ func NewTableFromHeaderAndRows(header []string, rows [][]RowValue) Table {
 	// fill in the blanks
 	nHeaders := len(table.Headers)
 	nColumns := len(table.Rows[0])
-	fmt.Println(nHeaders, nColumns)
+
 	difference := nColumns - nHeaders
 
 	for i := 0; i < difference; i ++ {
