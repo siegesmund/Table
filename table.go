@@ -10,10 +10,29 @@ import (
 
 type Table struct {
 	Headers []string
-	Rows [][]string
+	Rows [][]RowValue
 }
 
-func NewTableFromHeaderAndRows(header []string, rows [][]string) Table {
+// Returns rows as only the text values
+func (t *Table) rowText() [][]string {
+
+	var result [][]string
+	for _, row := range t.Rows {
+		var stringColumns []string
+		for _, c := range row {
+			stringColumns = append(stringColumns, c.Value)
+		}
+		result = append(result, stringColumns)
+	}
+	return result
+}
+
+type RowValue struct {
+	Value string `json:"value"`
+	Link  string `json:"link"`
+}
+
+func NewTableFromHeaderAndRows(header []string, rows [][]RowValue) Table {
 	table := Table{Headers:header, Rows:rows}
 
 	// If there are fewer headers than columns,
@@ -34,16 +53,20 @@ func getHeader(h *colly.HTMLElement) []string {
 	h.ForEach("tr th", func(_ int, el *colly.HTMLElement) {
 		headers = append(headers, el.Text)
 	})
-	fmt.Println(headers)
 	return headers
 }
 
-func getRows(rowElements *colly.HTMLElement) [][]string {
-	var result [][]string
+func getRows(rowElements *colly.HTMLElement) [][]RowValue {
+	var result [][]RowValue
 	rowElements.ForEach("tr", func(i int, rowElement *colly.HTMLElement) {
-		var row [] string
+		var row [] RowValue
 		rowElement.ForEach("td", func(j int, columnElement *colly.HTMLElement) {
-			row = append(row, columnElement.Text)
+			contentValue := columnElement.Text
+			link := columnElement.ChildAttr("a", "href")
+			row = append(row, RowValue{
+				contentValue,
+				link,
+			})
 		})
 		if len(row) > 0 {
 			result = append(result, row)
@@ -52,13 +75,16 @@ func getRows(rowElements *colly.HTMLElement) [][]string {
 	return result
 }
 
-func (t *Table) Map() []map[string]string {
-	var result []map[string]string
+func (t *Table) Map() []map[string]interface{} {
+	var result []map[string]interface{}
 	for _, row := range t.Rows {
-		var rowMap = make(map[string]string)
+		var rowMap = make(map[string]interface{})
 		for j, value:= range row {
 			name := t.Headers[j]
-			rowMap[name] = value
+			contentMap := make(map[string]string)
+			contentMap["value"] = value.Value
+			contentMap["link"] = value.Link
+			rowMap[name] = contentMap
 		}
 		result = append(result, rowMap)
 	}
@@ -70,10 +96,11 @@ func (t *Table) JSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
+
 func (t *Table) Print() {
 	twriter := tablewriter.NewWriter(os.Stdout)
 	twriter.SetHeader(t.Headers)
-	for _, v := range t.Rows {
+	for _, v := range t.rowText() {
 		twriter.Append(v)
 	}
 	twriter.Render()

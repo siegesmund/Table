@@ -37,8 +37,8 @@ type Tables struct {
 	Tables []Table
 }
 
-func (t *Tables) Maps() [][]map[string]string {
-	var maps [][]map[string]string
+func (t *Tables) Maps() [][]map[string]interface{} {
+	var maps [][]map[string]interface{}
 	for _, table := range t.Tables {
 		tableMap := table.Map()
 		maps = append(maps, tableMap)
